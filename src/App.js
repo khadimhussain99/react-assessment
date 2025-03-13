@@ -1,12 +1,11 @@
 import React from "react";
-import logo from "./logo.svg";
 import "./App.css";
-import MonopolyQuestion from "./Questions";
+import Questions from "./Questions";
 
 function App() {
   return (
     <div className="App">
-      <MonopolyQuestion />
+      <Questions />
     </div>
   );
 }
