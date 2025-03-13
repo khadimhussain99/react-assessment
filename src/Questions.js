@@ -7,108 +7,124 @@ const MonopolyQuestion = () => {
   const [score, setScore] = useState(67);
   const [maxScore, setMaxScore] = useState(75);
   const [questions, setQuestions] = useState([]);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState();
 
   const handleAnswerSelection = (answer) => {
     setSelectedAnswer(answer);
     // In a real app, you might update the score here based on correctness
   };
 
+  function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]]; // Swap elements
+    }
+    return array;
+  }
+
   useEffect(() => {
-    setQuestions(questionsData);
+    const formatedQuestions = questionsData.map((question) => {
+      const correct_answer = decodeURIComponent(question.correct_answer);
+      const incorrect_answers = question.incorrect_answers.map((answer) =>
+        decodeURIComponent(answer)
+      );
+      const answerOptions = shuffleArray([
+        ...incorrect_answers,
+        correct_answer,
+      ]);
+      return {
+        category: decodeURIComponent(question.category),
+        type: question.type,
+        difficulty: question.difficulty,
+        question: decodeURIComponent(question.question),
+        correct_answer: correct_answer,
+        answers: answerOptions,
+      };
+    });
+    setQuestions(formatedQuestions);
   }, []);
-
-  const handleNext = () => {
-    if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-    }
-  };
-
-  const handlePrevious = () => {
-    if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(currentQuestionIndex - 1);
-    }
-  };
 
   console.log(questions[0]);
 
   return (
     <section className="container">
-      <div className="question-container">
-        <div className="question-header">
-          <div className="question-title">
-            <h2>Question 16 of 20</h2>
-            <p className="question-category">Entertainment: Board Games</p>
-            <div className="star-rating">
-              <span className="star filled">★</span>
-              <span className="star filled">★</span>
-              <span className="star filled">★</span>
+      {questions.length ? (
+        <div className="question-container">
+          {/* <div
+            className={``}
+            style={{
+              width: `${questions.length / currentQuestionIndex}%`,
+              backgroundColor: "grey",
+              height: "10px",
+            }}
+          ></div> */}
+          <div className="question-header">
+            <div className="question-title">
+              <h2>
+                Question {currentQuestionIndex + 1} of {questions.length}
+              </h2>
+              <p className="question-category">
+                {questions[currentQuestionIndex].category}
+              </p>
+              <div className="star-rating">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <span
+                    key={i}
+                    className={` ${
+                      questions[currentQuestionIndex].difficulty === "medium" &&
+                      i < 2
+                        ? "star"
+                        : questions[currentQuestionIndex].difficulty ===
+                            "hard" && i === 2
+                        ? "star"
+                        : "filled"
+                    }`}
+                  >
+                    ★
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="question-text">
+            <p>{questions[currentQuestionIndex].question}</p>
+          </div>
+
+          <div className="answer-options">
+            {questions[currentQuestionIndex].answers.map((ans, i) => (
+              <button
+                key={i}
+                className={`answer-button ${
+                  selectedAnswer === ans ? "selected" : ""
+                }`}
+                onClick={() => handleAnswerSelection(ans)}
+              >
+                {ans}
+              </button>
+            ))}
+          </div>
+
+          <div className="score-section">
+            <div className="score-text">
+              <span>Score: {score}%</span>
+              <span className="max-score">Max Score: {maxScore}%</span>
+            </div>
+            <div className="progress-bar">
+              <div
+                className="progress-filled"
+                style={{ width: `${score}%` }}
+              ></div>
+              <div
+                className="progress-max"
+                style={{ width: `${maxScore - score}%` }}
+              ></div>
             </div>
           </div>
         </div>
-
-        <div className="question-text">
-          <p>
-            At the start of a standard game of the Monopoly, if you throw a
-            double six, which square would you land on?
-          </p>
-        </div>
-
-        <div className="answer-options">
-          <button
-            className={`answer-button ${
-              selectedAnswer === "electric" ? "selected" : ""
-            }`}
-            onClick={() => handleAnswerSelection("electric")}
-          >
-            Electric Company
-          </button>
-
-          <button
-            className={`answer-button ${
-              selectedAnswer === "water" ? "selected" : ""
-            }`}
-            onClick={() => handleAnswerSelection("water")}
-          >
-            Water Works
-          </button>
-
-          <button
-            className={`answer-button ${
-              selectedAnswer === "chance" ? "selected" : ""
-            }`}
-            onClick={() => handleAnswerSelection("chance")}
-          >
-            Chance
-          </button>
-
-          <button
-            className={`answer-button ${
-              selectedAnswer === "community" ? "selected" : ""
-            }`}
-            onClick={() => handleAnswerSelection("community")}
-          >
-            Community Chest
-          </button>
-        </div>
-
-        <div className="score-section">
-          <div className="score-text">
-            <span>Score: {score}%</span>
-            <span className="max-score">Max Score: {maxScore}%</span>
-          </div>
-          <div className="progress-bar">
-            <div
-              className="progress-filled"
-              style={{ width: `${score}%` }}
-            ></div>
-            <div
-              className="progress-max"
-              style={{ width: `${maxScore - score}%` }}
-            ></div>
-          </div>
-        </div>
-      </div>
+      ) : (
+        <div>Loading...</div>
+      )}
     </section>
   );
 };
